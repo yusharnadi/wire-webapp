@@ -28,10 +28,15 @@ describe 'z.announce.AnnounceService', ->
     .then done
     .catch done.fail
 
-  describe 'Successful calls', ->
+  describe 'get_announcements', ->
     beforeEach ->
       server = sinon.fakeServer.create()
       server.autoRespond = true
+
+    afterEach ->
+      server.restore()
+
+    it 'should fetch announcements', (done) ->
       response =
         'count': 2
         'now': '2016-05-26T10:15:43.507250'
@@ -69,32 +74,20 @@ describe 'z.announce.AnnounceService', ->
         ]
         'status': 'success'
 
-      server.respondWith 'GET', 'https://wire.com/api/v1/announce/?order=created&active=true', [
+      server.respondWith 'GET', 'https://staging-website.zinfra.io/api/v1/announce/?order=created&active=true', [
         200
         'Content-Type': 'application/json'
         JSON.stringify response
       ]
-
-    afterEach ->
-      server.restore()
-
-    it 'can fetch an announcement', (done) ->
       announce_service.get_announcements()
       .then (result) ->
         expect(result.length).toBe 2
         done()
       .catch done.fail
 
-  describe 'Failed calls', ->
-    beforeEach ->
-      server = sinon.fakeServer.create()
-      server.autoRespond = true
-      server.respondWith 'GET', 'https://wire.com/api/v1/announce/?order=created&active=true', [404, {}, ""]
+    it 'should handle a failed backend call', (done) ->
+      server.respondWith 'GET', 'https://staging-website.zinfra.io/api/v1/announce/?order=created&active=true', [404, {}, ""]
 
-    afterEach ->
-      server.restore()
-
-    it 'cannot fetch an announcement', (done) ->
       announce_service.get_announcements()
       .then done.fail
       .catch (error) ->
@@ -123,5 +116,3 @@ describe 'z.announce.AnnounceService', ->
         expect(version).toBe response.version
         done()
       .catch done.fail
-
-
