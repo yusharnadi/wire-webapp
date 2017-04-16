@@ -38,98 +38,11 @@ z.assets.AssetService = class AssetService {
   }
 
   /**
-   * Upload any asset to the backend using asset api v1.
-   *
-   * @deprecated
-   * @param {Object} config - Configuration object containing the jQuery call settings
-   * @param {string} config.data - Asset data
-   * @param {string} config.contentDisposition - Content disposition header
-   * @param {string} config.contentType - Content type
-   * @returns {Promise} Resolve when asset has been uploaded
-   */
-  post_asset(config) {
-    return this.client.send_request({
-      type: 'POST',
-      url: this.client.create_url('/assets'),
-      data: config.data,
-      processData: false, // otherwise jquery will convert it to a query string
-      contentType: config.contentType,
-      headers: {
-        'Content-Disposition': config.contentDisposition,
-      },
-    });
-  }
-
-  /**
-   * Upload any asset pair to the backend using asset api v1.
-   *
-   * @deprecated
-   * @param {z.assets.Asset} small - Small asset
-   * @param {z.assets.Asset} medium - Medium asset
-   * @returns {Promise} Resolves when asset pair has been uploaded
-   */
-  post_asset_pair(small, medium) {
-    return Promise.all([
-      this.post_asset({
-        contentType: small.content_type,
-        contentDisposition: small.get_content_disposition(),
-        data: small.array_buffer,
-      }),
-      this.post_asset({
-        contentType: medium.content_type,
-        contentDisposition: medium.get_content_disposition(),
-        data: medium.array_buffer,
-      }),
-    ]);
-  }
-
-  /**
-   * Update the user profile image by first making it usable, transforming it and then uploading the asset pair.
-   *
-   * @deprecated
-   * @param {string} conversation_id - ID of self conversation
-   * @param {File|Blob} image - Profile image
-   * @returns {Promise} Resolves when profile image has been uploaded
-   */
-  upload_profile_image(conversation_id, image) {
-    return Promise.all([
-      this._compress_profile_image(image),
-      this._compress_image(image),
-    ]).then(([small, medium]) => {
-      const [small_image, small_image_bytes] = small;
-      const [medium_image, medium_image_bytes] = medium;
-
-      const medium_asset = new z.assets.Asset({
-        array_buffer: medium_image_bytes,
-        content_type: 'image/jpg',
-        conversation_id,
-        md5: z.util.array_to_md5_base64(medium_image_bytes),
-        width: medium_image.width,
-        height: medium_image.height,
-        public: true,
-      });
-
-      const small_profile_asset = $.extend(true, {}, medium_asset);
-      small_profile_asset.__proto__ = z.assets.Asset.prototype;
-      small_profile_asset.array_buffer = small_image_bytes;
-      small_profile_asset.payload.width = small_image.width;
-      small_profile_asset.payload.height = small_image.height;
-      small_profile_asset.payload.md5 = z.util.array_to_md5_base64(small_image_bytes);
-      small_profile_asset.payload.tag = z.assets.ImageSizeType.SMALL_PROFILE;
-
-      return this.post_asset_pair(small_profile_asset, medium_asset);
-    })
-    .then(([small_response, medium_response]) => {
-      return [small_response.data, medium_response.data];
-    });
-  }
-
-  /**
    * Update the user profile image by first making it usable, transforming it and then uploading the asset pair.
    * @param {File|Blob} image - Profile image
    * @returns {Promise} Resolves when profile image has been uploaded
    */
-  upload_profile_image_v3(image) {
+  upload_profile_image(image) {
     return Promise.all([
       this._compress_profile_image(image),
       this._compress_image(image),
