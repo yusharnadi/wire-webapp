@@ -361,9 +361,7 @@ class z.main.App
     , 10000
 
     $('#loading-screen').remove()
-    $('#wire-main')
-      .removeClass 'off'
-      .attr 'data-uie-value', 'is-loaded'
+    $('#wire-main').attr 'data-uie-value', 'is-loaded'
 
   # Subscribe to 'navigator.onLine' related events.
   _watch_online_status: ->
