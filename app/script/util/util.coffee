@@ -606,3 +606,6 @@ z.util.format_time_remaining = (time_remaining) ->
     title += "#{moment_duration.seconds()} #{z.localization.Localizer.get_text z.string.ephememal_units_seconds}"
 
   return title or ''
+
+
+z.util.noop = =>
