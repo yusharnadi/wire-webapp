@@ -607,5 +607,7 @@ z.util.format_time_remaining = (time_remaining) ->
 
   return title or ''
 
-
-z.util.noop = =>
+###
+In case you need /dev/null
+###
+z.util.noop = -> return
