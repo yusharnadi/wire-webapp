@@ -547,9 +547,11 @@ class z.conversation.ConversationRepository
   @param handling_state [z.event.NOTIFICATION_HANDLING_STATE] State of the notifications stream handling
   ###
   set_notification_handling_state: (handling_state) =>
-    @block_event_handling = handling_state isnt z.event.NOTIFICATION_HANDLING_STATE.WEB_SOCKET
-    @sending_queue.pause @block_event_handling
-    @logger.info "Block handling of conversation events: #{@block_event_handling}"
+    updated_block_event_handling_state = handling_state isnt z.event.NOTIFICATION_HANDLING_STATE.WEB_SOCKET
+    if @block_event_handling isnt updated_block_event_handling_state
+      @block_event_handling = updated_block_event_handling_state
+      @sending_queue.pause @block_event_handling
+      @logger.info "Block handling of conversation events: #{@block_event_handling}"
 
   ###
   Update participating users in a conversation.

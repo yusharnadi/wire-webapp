@@ -10,6 +10,7 @@ extends:
 globals:
   _: true
   $: true
+  adapter: true
   amplify: true
   cryptobox: true
   CryptoJS: true

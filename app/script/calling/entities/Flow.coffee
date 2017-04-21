@@ -363,7 +363,7 @@ class z.calling.entities.Flow
       {stream: event.stream, audio_tracks: event.stream.getAudioTracks(), video_tracks: event.stream.getVideoTracks()}
     media_stream = z.media.MediaStreamHandler.detect_media_stream_type event.stream
     if media_stream.type is z.media.MediaType.AUDIO
-      media_stream = @audio.wrap_speaker_stream event.stream
+      media_stream = @audio.wrap_audio_output_stream event.stream
     media_stream_info = new z.media.MediaStreamInfo z.media.MediaStreamSource.REMOTE, @id, media_stream, @call_et
     amplify.publish z.event.WebApp.CALL.MEDIA.ADD_STREAM, media_stream_info
 
@@ -438,7 +438,7 @@ class z.calling.entities.Flow
   save_remote_sdp: (remote_sdp) =>
     @logger.debug "Saving remote '#{remote_sdp.type}' SDP"
     z.calling.mapper.SDPMapper.rewrite_sdp remote_sdp, z.calling.enum.SDPSource.REMOTE, @
-    .then ([remote_sdp, ice_candidates]) =>
+    .then ({sdp: remote_sdp}) =>
       @remote_sdp remote_sdp
 
   ###
@@ -449,7 +449,7 @@ class z.calling.entities.Flow
     @_clear_send_sdp_timeout()
 
     z.calling.mapper.SDPMapper.rewrite_sdp @peer_connection.localDescription, z.calling.enum.SDPSource.LOCAL, @
-    .then ([local_sdp, ice_candidates]) =>
+    .then ({ice_candidates, sdp: local_sdp}) =>
       @local_sdp local_sdp
 
       if sending_on_timeout and not @_contains_relay_candidate ice_candidates
@@ -492,7 +492,7 @@ class z.calling.entities.Flow
     .then (sdp_answer) =>
       @logger.debug "Creating '#{z.calling.rtc.SDPType.ANSWER}' successful", sdp_answer
       z.calling.mapper.SDPMapper.rewrite_sdp sdp_answer, z.calling.enum.SDPSource.LOCAL, @
-    .then ([local_sdp, ice_candidates]) =>
+    .then ({sdp: local_sdp}) =>
       @local_sdp local_sdp
     .catch (error) =>
       @logger.error "Creating '#{z.calling.rtc.SDPType.ANSWER}' failed: #{error.name} - #{error.message}", error
@@ -519,7 +519,7 @@ class z.calling.entities.Flow
     .then (sdp_offer) =>
       @logger.debug "Creating '#{z.calling.rtc.SDPType.OFFER}' successful", sdp_offer
       z.calling.mapper.SDPMapper.rewrite_sdp sdp_offer, z.calling.enum.SDPSource.LOCAL, @
-    .then ([local_sdp, ice_candidates]) =>
+    .then ({sdp: local_sdp}) =>
       @local_sdp local_sdp
     .catch (error) =>
       @logger.error "Creating '#{z.calling.rtc.SDPType.OFFER}' failed: #{error.name} - #{error.message}", error
@@ -695,7 +695,7 @@ class z.calling.entities.Flow
   ###
   _add_media_stream: (media_stream) ->
     if media_stream.type is z.media.MediaType.AUDIO
-      media_stream = @audio.wrap_microphone_stream media_stream
+      media_stream = @audio.wrap_audio_input_stream media_stream
 
     if @peer_connection.addTrack
       for media_stream_track in media_stream.getTracks()
